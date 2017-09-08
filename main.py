@@ -107,12 +107,12 @@ main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', servi
 
 for i in range(0, returns):
     for line in open(file_path, mode='rb'):
-        browsers = fetch_free_browsers()
-        print 'Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(len(browsers['used']))
-        print browsers
-        main_driver.get(line)
-        error = None
         try:
+            browsers = fetch_free_browsers()
+            print 'Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(len(browsers['used']))
+            print browsers
+            main_driver.get(line)
+            error = None
 
             canvas = WebDriverWait(main_driver, 10).until(
                 EC.presence_of_element_located((By.ID, "canvas"))
