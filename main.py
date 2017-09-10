@@ -14,6 +14,8 @@ import socket
 
 
 
+show_browser_ui = False
+
 hostname = socket.gethostname()
 
 system_ip = 'localhost'
@@ -46,6 +48,9 @@ if 'URL_FILE_PATH' in os.environ:
 
 if 'ITERATION_PAUSE' in os.environ:
     iteration_pause = int(os.environ['ITERATION_PAUSE'])
+
+if 'SHOW_BROWSER_UI' in os.environ:
+    show_browser_ui = bool(os.environ['SHOW_BROWSER_UI'])
 
 
 es_client = Elasticsearch(hosts=[es_host])
@@ -93,8 +98,9 @@ def fetch_free_browsers():
     return browsers
 
 
-display = Display(visible=0, size=(800, 600))
-display.start()
+if not show_browser_ui:
+    display = Display(visible=0, size=(800, 600))
+    display.start()
 
 
 desired_capabilities = None
@@ -154,7 +160,7 @@ for i in range(0, returns):
             body['error'] = str(type(error))
         es_client.index('soaktest', 'test', body)
 
-        time.sleep(5)
+        time.sleep(iteration_pause)
 
 main_driver.quit()
 
