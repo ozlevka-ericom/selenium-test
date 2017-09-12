@@ -106,8 +106,8 @@ if not show_browser_ui:
 desired_capabilities = None
 
 
-service_log_path = "./chromedriver.log"
-service_args = ['--verbose', '--log-path=' + log_path]
+service_log_path = "chromedriver.log"
+service_args = ['--verbose', '--log-path=' + log_path + '/' + service_log_path]
 
 main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', service_args=service_args, chrome_options=chrome_options, desired_capabilities=desired_capabilities)     #usr/lib/chromium-browser/chromedriver')
 
