@@ -53,6 +53,9 @@ if 'SHOW_BROWSER_UI' in os.environ:
     show_browser_ui = bool(os.environ['SHOW_BROWSER_UI'])
 
 
+if 'CHROME_LOG_PATH' in os.environ:
+    log_path = os.environ['CHROME_LOG_PATH']
+
 es_client = Elasticsearch(hosts=[es_host])
 
 wait_for_elasticsearch = True
@@ -115,8 +118,8 @@ for i in range(0, returns):
     for line in open(file_path, mode='rb'):
         try:
             browsers = fetch_free_browsers()
-            print 'Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(len(browsers['used']))
-            print browsers
+            print str(datetime.now()) + ' Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(len(browsers['used']))
+            print str(datetime.now()) + ' ' + str(browsers)
             main_driver.get(line)
             error = None
 
