@@ -1,0 +1,5 @@
+#!/bin/bash -x
+
+docker-compose up -d --scale test=2 
+
+
