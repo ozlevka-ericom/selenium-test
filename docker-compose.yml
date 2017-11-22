@@ -1,30 +1,30 @@
 version: "3.3"
 
-services:
-  elastic:
-    image: elasticsearch:5.5.1
-    environment:
-        ES_JAVA_OPTS: "-Xms2g -Xmx2g"
-    volumes:
-        - /etc/localtime:/etc/localtime:ro
-        - /home/ericom/tmpwork/elasticdata:/data
-    networks:
-      - default
-    command: "elasticsearch --E cluster.name=soaktest --E path.data=/data"
-    ports:
-      - "9201:9200"
-
-  kibana:
-    image: kibana:5.5.1
-    command: kibana -e http://elastic:9200
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "5603:5601"
-    networks:
-      - default
-    links:
-      - elastic
+#services:
+#  elastic:
+#    image: elasticsearch:5.5.1
+#    environment:
+#        ES_JAVA_OPTS: "-Xms2g -Xmx2g"
+#    volumes:
+#        - /etc/localtime:/etc/localtime:ro
+#        - /tmp/esdata:/data
+#    networks:
+#      - default
+#    command: "elasticsearch --E cluster.name=soaktest --E path.data=/data"
+#    ports:
+#      - "9201:9200"
+#
+#  kibana:
+#    image: kibana:5.5.1
+#    command: kibana -e http://elastic:9200
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#    ports:
+#      - "5603:5601"
+#    networks:
+#      - default
+#    links:
+#      - elastic
 
   test:
     image: ozlevka/python-test:170915-09.36

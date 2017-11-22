@@ -117,9 +117,9 @@ main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', servi
 for i in range(0, returns):
     for line in open(file_path, mode='rb'):
         try:
-            browsers = fetch_free_browsers()
-            print str(datetime.now()) + ' Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(len(browsers['used']))
-            print str(datetime.now()) + ' ' + str(browsers)
+            #browsers = fetch_free_browsers()
+            #print str(datetime.now()) + ' Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(len(browsers['used']))
+            #print str(datetime.now()) + ' ' + str(browsers)
             main_driver.get(line)
             error = None
 
@@ -148,10 +148,10 @@ for i in range(0, returns):
         body = {
             'url': line,
             '@timestamp': datetime.utcnow(),
-            'browsers': {
-                'free': len(browsers['free']),
-                'used': len(browsers['used'])
-            },
+            # 'browsers': {
+            #     'free': len(browsers['free']),
+            #     'used': len(browsers['used'])
+            # },
             'iteration': (i + 1),
             'hostname': hostname
         }
