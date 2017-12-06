@@ -41,6 +41,7 @@ services:
       - "ES_HOST=elastic:9200"
       - "ITERATION_PAUSE=10"
       - "CHROME_LOG_PATH=."
+#     - "MAXIMUM_TABS=10" in browser
 
 networks:
   default:
