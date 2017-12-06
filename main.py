@@ -1,16 +1,15 @@
 from datetime import datetime
 from pyvirtualdisplay import Display
-from selenium.webdriver.chrome.options import Options, DesiredCapabilities
 from selenium.webdriver.common.by import By
 import time
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import consul
-import os
+import os, sys
 from elasticsearch import Elasticsearch
 import socket
+from gevent.threadpool import ThreadPool
 
 
 
@@ -50,11 +49,15 @@ if 'ITERATION_PAUSE' in os.environ:
     iteration_pause = int(os.environ['ITERATION_PAUSE'])
 
 if 'SHOW_BROWSER_UI' in os.environ:
-    show_browser_ui = bool(os.environ['SHOW_BROWSER_UI'])
+    show_browser_ui = os.environ['SHOW_BROWSER_UI'] == "True"
 
 
 if 'CHROME_LOG_PATH' in os.environ:
     log_path = os.environ['CHROME_LOG_PATH']
+
+maximum_tabs = 5
+if 'MAXIMUM_TABS' in os.environ:
+    maximum_tabs = int(os.environ['MAXIMUM_TABS'])
 
 es_client = Elasticsearch(hosts=[es_host])
 
@@ -74,7 +77,38 @@ while wait_for_elasticsearch:
         raise Exception("Elasticsearch is not avaliable after " + str(counter) + " retries")
     time.sleep(1)
 
+def make_result_body(i, line, error):
+    browsers = fetch_free_browsers()
+    print str(datetime.now()) + ' Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(
+        len(browsers['used']))
+    print str(datetime.now()) + ' ' + str(browsers)
 
+    body = {
+        'url': line,
+        '@timestamp': datetime.utcnow(),
+        'browsers': {
+            'free': len(browsers['free']),
+            'used': len(browsers['used'])
+        },
+        'iteration': (i + 1),
+        'hostname': hostname
+    }
+
+    if error is None:
+        body['result'] = 'success'
+    else:
+        body['result'] = 'failed'
+        body['error'] = str(type(error))
+
+    return body
+
+
+def write_results_to_es(i, line, error):
+    try:
+        body = make_result_body(i, line, error)
+        print es_client.index('soaktest', 'test', body)
+    except Exception, ex:
+        print ex
 
 cnl = consul.Consul(host=system_ip)
 
@@ -112,60 +146,67 @@ desired_capabilities = None
 service_log_path = "chromedriver.log"
 service_args = ['--verbose', '--log-path=' + log_path + '/' + service_log_path]
 
-main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', service_args=service_args, chrome_options=chrome_options, desired_capabilities=desired_capabilities)     #usr/lib/chromium-browser/chromedriver')
+pool = ThreadPool(5)
 
-for i in range(0, returns):
-    for line in open(file_path, mode='rb'):
-        try:
-            browsers = fetch_free_browsers()
-            print str(datetime.now()) + ' Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(len(browsers['used']))
-            print str(datetime.now()) + ' ' + str(browsers)
-            main_driver.get(line)
-            error = None
+def clear_half_tabs(driver):
+    for _ in range(0, int(maximum_tabs / 2)):
+        driver.switch_to.window(driver.window_handles[0])
+        driver.close()
 
-            canvas = WebDriverWait(main_driver, 10).until(
-                EC.presence_of_element_located((By.ID, "canvas"))
-            )
-
-            menu = WebDriverWait(main_driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "nav.context-menu"))
-            )
-
-            if not canvas:
-                raise Exception('Canvas not found')
-            elif not canvas.__class__.__name__ == 'WebElement':
-                raise Exception('Canvas is not WebElement')
-
-            if not menu:
-                raise Exception('menu not found')
-            elif not menu.__class__.__name__ == 'WebElement':
-                raise Exception('menu is not WebElement')
-
-        except Exception, e:
-            error = e
+def run_main_line():
+    main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', service_args=service_args, chrome_options=chrome_options, desired_capabilities=desired_capabilities)  # usr/lib/chromium-browser/chromedriver')
+    try:
+        for i in range(0, returns):
+            for line in open(file_path, mode='rb'):
+                try:
+                    #main_driver.get(line)
+                    main_driver.execute_script("window.open('%s')" % line.replace("\r\n",''))
+                    error = None
+                    current_handle = main_driver.window_handles[-1]
+                    main_driver.switch_to.window(current_handle)
 
 
-        body = {
-            'url': line,
-            '@timestamp': datetime.utcnow(),
-            'browsers': {
-                'free': len(browsers['free']),
-                'used': len(browsers['used'])
-            },
-            'iteration': (i + 1),
-            'hostname': hostname
-        }
 
-        if error is None:
-            body['result'] = 'success'
-        else:
-            body['result'] = 'failed'
-            body['error'] = str(type(error))
-        es_client.index('soaktest', 'test', body)
+                    canvas = WebDriverWait(main_driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "canvas"))
+                    )
 
-        time.sleep(iteration_pause)
+                    menu = WebDriverWait(main_driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "nav.context-menu"))
+                    )
 
-main_driver.quit()
+                    if not canvas:
+                        raise Exception('Canvas not found')
+                    elif not canvas.__class__.__name__ == 'WebElement':
+                        raise Exception('Canvas is not WebElement')
+
+                    if not menu:
+                        raise Exception('menu not found')
+                    elif not menu.__class__.__name__ == 'WebElement':
+                        raise Exception('menu is not WebElement')
+
+                except Exception, e:
+                    print e
+                    error = e
+
+                try:
+                    if len(main_driver.window_handles) >= maximum_tabs:
+                        clear_half_tabs(main_driver)
+                        current_handle = main_driver.window_handles[-1]
+                        main_driver.switch_to.window(current_handle)
+                except Exception, e:
+                    print e
+
+                pool.spawn(write_results_to_es, i, line, error)
+
+                time.sleep(iteration_pause)
+    except Exception as exs:
+        print exs
+    finally:
+        main_driver.quit()
+
+
+run_main_line()
 
 
 

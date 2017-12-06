@@ -1,5 +1,17 @@
-#!/bin/bash -x
+#!/bin/bash 
 
-docker-compose up -d --scale test=2 
+COUNTER=$(seq 1 "$1")
 
+source ~/.virtualenv/soak/bin/activate
+
+
+function make_log_directory() {
+    if [ ! -d "$1" ]; then
+        mkdir -p "$1"
+    fi
+}
+
+for c in $COUNTER; do
+    make_log_directory "./$c"
+done
 
