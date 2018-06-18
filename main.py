@@ -10,6 +10,7 @@ import os, sys
 from elasticsearch import Elasticsearch
 import socket
 from gevent.threadpool import ThreadPool
+from selenium.common.exceptions import TimeoutException
 
 
 
@@ -117,7 +118,7 @@ chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("--disable-setuid-sandbox")
 chrome_options.add_argument('--proxy-server=' + proxy_address)
-chrome_options.binary_location = '/opt/google/chrome-beta/google-chrome'
+chrome_options.binary_location = '/opt/google/chrome/google-chrome'
 
 
 def fetch_free_browsers():
@@ -156,48 +157,56 @@ def clear_half_tabs(driver):
 def run_main_line():
     main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', service_args=service_args, chrome_options=chrome_options, desired_capabilities=desired_capabilities)  # usr/lib/chromium-browser/chromedriver')
     try:
+        wait = WebDriverWait(main_driver, 20)
+
         for i in range(0, returns):
             for line in open(file_path, mode='rb'):
-                try:
-                    #main_driver.get(line)
-                    main_driver.execute_script("window.open('%s')" % line.replace("\r\n",''))
-                    error = None
-                    current_handle = main_driver.window_handles[-1]
-                    main_driver.switch_to.window(current_handle)
+                for i in range(1,4):
+                    try:
+                       main_driver.get("http://shield-perf")
+                       try:
+                           url = wait.until(
+                               EC.presence_of_element_located((By.ID, "target-url"))
+                           )
+                       except TimeoutException:
+                           print "Main page load timeout attempt {}".format(i)
+                       url.send_keys(line)
+                       try:
+                           iframe = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div#frame-wrapper iframe.an-frame")))
+                       except TimeoutException:
+                           print "Shield iframe timeout attempt {}".format(i)
+                       main_driver.switch_to.frame(iframe)
+                       try:
+                           wait.until(EC.presence_of_element_located((By.ID, "canvas")))
+                       except TimeoutException:
+                            print "Access now timeout attempt {}".format(i)
+                       main_driver.switch_to.window(main_driver.window_handles[0])
 
+                       page_loaded = False
+                       #"page fully loaded"
 
+                       try:
+                           wait.until(
+                               EC.text_to_be_present_in_element((By.CSS_SELECTOR,"#table-results tbody tr>td:first-child"), "fully loaded")
+                           )
+                       except TimeoutException:
+                           print "Page fully loaded timeout attempt {}".format(i)
 
-                    canvas = WebDriverWait(main_driver, 10).until(
-                        EC.presence_of_element_located((By.ID, "canvas"))
-                    )
+                       pass
 
-                    menu = WebDriverWait(main_driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "nav.context-menu"))
-                    )
+                    except Exception, e:
+                        print e
+                        error = e
 
-                    if not canvas:
-                        raise Exception('Canvas not found')
-                    elif not canvas.__class__.__name__ == 'WebElement':
-                        raise Exception('Canvas is not WebElement')
+                # try:
+                #     if len(main_driver.window_handles) >= maximum_tabs:
+                #         clear_half_tabs(main_driver)
+                #         current_handle = main_driver.window_handles[-1]
+                #         main_driver.switch_to.window(current_handle)
+                # except Exception, e:
+                #     print e
 
-                    if not menu:
-                        raise Exception('menu not found')
-                    elif not menu.__class__.__name__ == 'WebElement':
-                        raise Exception('menu is not WebElement')
-
-                except Exception, e:
-                    print e
-                    error = e
-
-                try:
-                    if len(main_driver.window_handles) >= maximum_tabs:
-                        clear_half_tabs(main_driver)
-                        current_handle = main_driver.window_handles[-1]
-                        main_driver.switch_to.window(current_handle)
-                except Exception, e:
-                    print e
-
-                pool.spawn(write_results_to_es, i, line, error)
+                #pool.spawn(write_results_to_es, i, line, error)
 
                 time.sleep(iteration_pause)
     except Exception as exs:
