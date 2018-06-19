@@ -187,7 +187,7 @@ def run_main_line():
 
                        try:
                            wait.until(
-                               EC.text_to_be_present_in_element((By.CSS_SELECTOR,"#table-results tbody tr>td:first-child"), "fully loaded")
+                               EC.presence_of_element_located((By.ID,"page-loaded"))
                            )
                        except TimeoutException:
                            print "Page fully loaded timeout attempt {}".format(i)
