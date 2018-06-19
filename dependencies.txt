@@ -1,7 +1,7 @@
 certifi==2017.7.27.1
 chardet==3.0.4
 EasyProcess==0.2.3
-elasticsearch==5.4.0
+elasticsearch==6.2.0
 gevent==1.2.2
 greenlet==0.4.12
 idna==2.6

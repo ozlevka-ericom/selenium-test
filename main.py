@@ -192,6 +192,10 @@ def run_main_line():
                        except TimeoutException:
                            print "Page fully loaded timeout attempt {}".format(i)
 
+                       time.sleep(iteration_pause)
+
+                       trs = main_driver.find_elements_by_css_selector("#table-results tr")
+
                        pass
 
                     except Exception, e:
@@ -206,7 +210,7 @@ def run_main_line():
                 # except Exception, e:
                 #     print e
 
-                #pool.spawn(write_results_to_es, i, line, error)
+                pool.spawn(write_results_to_es, i, line, error)
 
                 time.sleep(iteration_pause)
     except Exception as exs:
