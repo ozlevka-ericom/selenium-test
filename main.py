@@ -80,6 +80,9 @@ while wait_for_elasticsearch:
 
 
 
+
+
+
 def make_result_body(iteration, attempt, url, data):
     browsers = fetch_free_browsers()
     print str(datetime.now()) + ' Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(
