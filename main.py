@@ -11,6 +11,7 @@ from elasticsearch import Elasticsearch
 import socket
 from gevent.threadpool import ThreadPool
 from selenium.common.exceptions import TimeoutException
+from esschema import EsSchema
 
 
 
@@ -78,7 +79,8 @@ while wait_for_elasticsearch:
         raise Exception("Elasticsearch is not avaliable after " + str(counter) + " retries")
     time.sleep(1)
 
-
+schema = EsSchema(es_client)
+schema.make_schema()
 
 
 
