@@ -78,35 +78,38 @@ while wait_for_elasticsearch:
         raise Exception("Elasticsearch is not avaliable after " + str(counter) + " retries")
     time.sleep(1)
 
-def make_result_body(i, line, error):
+
+
+def make_result_body(iteration, attempt, url, data):
     browsers = fetch_free_browsers()
     print str(datetime.now()) + ' Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(
         len(browsers['used']))
     print str(datetime.now()) + ' ' + str(browsers)
 
     body = {
-        'url': line,
+        'url': url,
         '@timestamp': datetime.utcnow(),
         'browsers': {
             'free': len(browsers['free']),
             'used': len(browsers['used'])
         },
-        'iteration': (i + 1),
-        'hostname': hostname
+        'iteration': (iteration + 1),
+        'attempt': attempt,
+        'hostname': hostname,
+        'browsing': data
     }
 
-    if error is None:
+    if data['error'] is None:
         body['result'] = 'success'
     else:
         body['result'] = 'failed'
-        body['error'] = str(type(error))
 
     return body
 
 
-def write_results_to_es(i, line, error):
+def write_results_to_es(iteration, attempt, url, data, error):
     try:
-        body = make_result_body(i, line, error)
+        body = make_result_body(iteration, attempt, url, data)
         print es_client.index('soaktest', 'test', body)
     except Exception, ex:
         print ex
@@ -154,6 +157,25 @@ def clear_half_tabs(driver):
         driver.switch_to.window(driver.window_handles[0])
         driver.close()
 
+def make_data_from_table(trs, error):
+    data = []
+    for tr in trs[1:]:
+        tds = tr.find_elements_by_tag_name('td')
+        data.append({
+            'name': tds[0].text,
+            'client_time': tds[1].text,
+            'server_time': tds[2].text
+        })
+    if not error is None:
+        return {
+            'error': error,
+            'data': data
+        }
+    return {
+        'error': None,
+        'data': data
+    }
+
 def run_main_line():
     main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', service_args=service_args, chrome_options=chrome_options, desired_capabilities=desired_capabilities)  # usr/lib/chromium-browser/chromedriver')
     try:
@@ -161,7 +183,9 @@ def run_main_line():
 
         for i in range(0, returns):
             for line in open(file_path, mode='rb'):
-                for i in range(1,4):
+                error = None
+                data = None
+                for j in range(1,4):
                     try:
                        main_driver.get("http://shield-perf")
                        try:
@@ -169,12 +193,15 @@ def run_main_line():
                                EC.presence_of_element_located((By.ID, "target-url"))
                            )
                        except TimeoutException:
-                           print "Main page load timeout attempt {}".format(i)
+                           raise TimeoutException("Main page load timeout attempt {}".format(i))
+
+
                        url.send_keys(line)
                        try:
                            iframe = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div#frame-wrapper iframe.an-frame")))
                        except TimeoutException:
-                           print "Shield iframe timeout attempt {}".format(i)
+                           raise TimeoutException("Shield iframe timeout attempt {}".format(i))
+
                        main_driver.switch_to.frame(iframe)
                        try:
                            wait.until(EC.presence_of_element_located((By.ID, "canvas")))
@@ -185,22 +212,25 @@ def run_main_line():
                        page_loaded = False
                        #"page fully loaded"
 
+                       last_error = None
                        try:
                            wait.until(
                                EC.presence_of_element_located((By.ID,"page-loaded"))
                            )
                        except TimeoutException:
-                           print "Page fully loaded timeout attempt {}".format(i)
+                           last_error = "Page fully loaded timeout attempt {}".format(i)
 
                        time.sleep(iteration_pause)
 
                        trs = main_driver.find_elements_by_css_selector("#table-results tr")
 
-                       pass
+                       data = make_data_from_table(trs, last_error)
 
                     except Exception, e:
                         print e
                         error = e
+
+                    write_results_to_es( i, j, line, data, error)
 
                 # try:
                 #     if len(main_driver.window_handles) >= maximum_tabs:
@@ -210,7 +240,7 @@ def run_main_line():
                 # except Exception, e:
                 #     print e
 
-                pool.spawn(write_results_to_es, i, line, error)
+
 
                 time.sleep(iteration_pause)
     except Exception as exs:

@@ -1,0 +1,65 @@
+{
+   "template": {
+       "index_patterns": "soaktest*",
+       "settings": {
+         "number_of_shards": 3,
+         "number_of_replicas": 0
+       },
+       "mappings": {
+          "test": {
+             "properties": {
+                "url": {
+                   "type": "keyword",
+                   "ignore_above": 1024
+                },
+                "@timestamp": {
+                   "type": "date"
+                },
+                "browsers": {
+                  "properties": {
+                     "free": {
+                        "type": "integer"
+                     },
+                     "used": {
+                       "type": "integer"
+                     }
+                  }
+                },
+                "iteration": {
+                  "type": "integer"
+                },
+                "attempt": {
+                  "type": "integer"
+                },
+                "hostname": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "browsing": {
+                   "properties": {
+                      "error": {
+                         "type": "text",
+                         "fielddata": true
+                      },
+                      "data": {
+                        "properties": {
+                           "name": {
+                              "type": "keyword",
+                              "ignore_above": 256
+                           },
+                           "client_time": {
+                             "type": "double"
+                           },
+                           "server_time": {
+                              "type": "keyword",
+                              "ignore_above": 256
+                           }
+                        }
+                      }
+                   }
+                }
+             }
+          }
+       }
+    }
+}
