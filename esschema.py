@@ -13,14 +13,21 @@ class EsSchema():
             return json.load(file)
 
     def make_index_template(self):
-        if not self.indicesClient.exists_template('soaktest'):
-            self.indicesClient.put_template("soaktest", self.schema['template'])
+        if not self.indicesClient.exists_template('soaktest:template'):
+            self.indicesClient.put_template("soaktest:template", self.schema['soaktest:template'])
 
     def make_kibana_index(self):
-        pass
+        if not self.indicesClient.exists_template("kibana_index_template:.kibana"):
+            self.indicesClient.put_template("kibana_index_template:.kibana", self.schema["kibana_index_template:.kibana"])
 
     def make_kibana_visualization(self):
-        pass
+        for item in self.schema["kibana:data"]:
+            self.client.index(
+                index=".kibana",
+                doc_type=item["_type"],
+                id=item["_id"],
+                body=item["_source"]
+            )
 
     def make_schema(self):
         self.make_index_template()
