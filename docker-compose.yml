@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   elastic:
-    image: elasticsearch:5.5.1
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.0 
     environment:
         ES_JAVA_OPTS: "-Xms2g -Xmx2g"
     volumes:
@@ -15,7 +15,7 @@ services:
       - "9201:9200"
 
   kibana:
-    image: kibana:5.5.1
+    image: docker.elastic.co/kibana/kibana-oss:6.3.0 
     command: kibana -e http://elastic:9200
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -25,9 +25,11 @@ services:
       - default
     links:
       - elastic
+    depends_on:
+      - elastic
 
   test:
-    image: ozlevka/python-test:latest
+    image: ozlevka/python-test:180621-12.13
     networks:
       - default
     links:
@@ -36,7 +38,7 @@ services:
       - elastic
 #    network_mode: host
     environment:
-      - "SYSTEM_UNDER_TEST_IP=192.168.50.80"
+      - "SYSTEM_UNDER_TEST_IP=192.168.50.74"
       - "TEST_CYCLES=500"
       - "ES_HOST=elastic:9200"
       - "ITERATION_PAUSE=10"

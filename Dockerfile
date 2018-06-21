@@ -14,7 +14,7 @@ RUN pip install --upgrade pip==9.0.3 && pip install -r ./dependencies.txt
 
 WORKDIR /opt/application
 COPY   *.py test-url-list.txt ./
-COPY data/ ./
+COPY data/ ./data/
 
 
 CMD ["python", "main.py"]
