@@ -105,3 +105,6 @@ ENV/
 
 # avoid chromedriver
 chromedriver
+
+# avoid download files
+download/
