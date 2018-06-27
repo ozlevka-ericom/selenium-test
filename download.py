@@ -223,7 +223,10 @@ def run_main_line():
                        print(e)
                 except Exception as ex:
                     if isinstance(ex, UnexpectedAlertPresentException):
-                        alert = main_driver.switch_to.alert()
+                        alert = main_driver.switch_to.alert
+                        alert.dismiss()
+                    else:
+                        print(ex)
 
 
 
