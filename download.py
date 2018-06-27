@@ -10,7 +10,7 @@ import os, sys
 from elasticsearch import Elasticsearch
 import socket
 from gevent.threadpool import ThreadPool
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, UnexpectedAlertPresentException
 from esschema import EsSchema
 import glob
 
@@ -222,14 +222,17 @@ def run_main_line():
                    except Exception as e:
                        print(e)
                 except Exception as ex:
-                    print(ex)
+                    if isinstance(ex, UnexpectedAlertPresentException):
+                        alert = main_driver.switch_to.alert()
+
+
 
                 max_attempts = 20
                 count = 1
                 while len(glob.glob(download_path + '/*')) == 0:
                     time.sleep(1)
                     if count >= max_attempts:
-                        error = "Download timeot"
+                        error = "Download timeout"
                         break
                     else:
                         count += 1
