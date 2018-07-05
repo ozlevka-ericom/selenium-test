@@ -109,7 +109,8 @@ def make_result_body(iteration, attempt, url, data):
         'iteration': (iteration + 1),
         'attempt': attempt,
         'hostname': hostname,
-        'browsing': data
+        'browsing': data,
+        'download': True
     }
 
     if data['error'] is None:
