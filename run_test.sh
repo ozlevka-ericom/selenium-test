@@ -14,7 +14,7 @@ DOCKER_COMPOSE_VERSION=1.21.2
 export LC_ALL=C
 
 function install_docker() {
-    if [ ! -x /usr/bin/docker ] || [ "$(docker version | grep -c $DOCKER_VERSION)" -le 1 ]; then
+    if [ ! -x /usr/bin/docker ] || [ "$(docker version | grep -c $DOCKER_VERSION)" -lt 1 ]; then
         log_message "***************     Installing docker-engine: $DOCKER_VERSION"
             apt-get --assume-yes -y install apt-transport-https software-properties-common
 
@@ -34,7 +34,7 @@ function install_docker() {
 }
 
 function install_docker_compose() {
-    if [ ! -x /usr/local/bin/docker-compose ] || [ "$(docker-compose version | grep -c $DOCKER_COMPOSE_VERSION)" -le 1 ]; then
+    if [ ! -x /usr/local/bin/docker-compose ] || [ "$(docker-compose version | grep -c $DOCKER_COMPOSE_VERSION)" -lt 1 ]; then
        curl -L https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
        chmod +x /usr/local/bin/docker-compose
     fi
@@ -42,7 +42,7 @@ function install_docker_compose() {
 
 
 function install_python_deps() {
-    if [ "$(pip3 freeze | grep -c PyYAML)" -le 1 ]; then
+    if [ "$(pip3 freeze | grep -c PyYAML)" -lt 1 ]; then
         apt-get install -y python3-pip
         pip3 install -r install-dep.txt
     fi

@@ -410,6 +410,21 @@
     {
       "_index": ".kibana",
       "_type": "doc",
+      "_id": "index-pattern:9dda19a0-8077-11e8-8dab-ab11f22dba1a",
+      "_score": 1,
+      "_source": {
+        "type": "index-pattern",
+        "updated_at": "2018-07-05T17:19:48.778Z",
+        "index-pattern": {
+          "title": "soakdownload*",
+          "timeFieldName": "@timestamp",
+          "fields": "[{\"name\":\"@timestamp\",\"type\":\"date\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"_id\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_index\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_score\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_source\",\"type\":\"_source\",\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_type\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"attempt\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"browsers.free\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"browsers.used\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"browsing.data.client_time\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"browsing.data.name\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"browsing.data.server_time\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"browsing.error\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"browsing.error.raw\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"download\",\"type\":\"boolean\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"hostname\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"iteration\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"result\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"result.keyword\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"url\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true}]"
+        }
+      }
+    },
+    {
+      "_index": ".kibana",
+      "_type": "doc",
       "_id": "visualization:e8202a00-7522-11e8-bf34-734acdd8b26e",
       "_source": {
         "type": "visualization",
@@ -527,7 +542,7 @@
           "title": "Top 10 download errors",
           "uiStateJSON": "{}",
           "kibanaSavedObjectMeta": {
-            "searchSourceJSON": "{\n  \"index\": \"7f9ccee0-8042-11e8-a4ec-6d15f48de4ec\",\n  \"filter\": [],\n  \"query\": {\n    \"query\": \"\",\n    \"language\": \"lucene\"\n  }\n}"
+            "searchSourceJSON": "{\n  \"index\": \"9dda19a0-8077-11e8-8dab-ab11f22dba1a\",\n  \"filter\": [],\n  \"query\": {\n    \"query\": \"\",\n    \"language\": \"lucene\"\n  }\n}"
           }
         },
         "type": "visualization",
@@ -547,7 +562,7 @@
           "uiStateJSON": "{}",
           "description": "",
           "kibanaSavedObjectMeta": {
-            "searchSourceJSON": "{\"index\":\"7f9ccee0-8042-11e8-a4ec-6d15f48de4ec\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
+            "searchSourceJSON": "{\"index\":\"9dda19a0-8077-11e8-8dab-ab11f22dba1a\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
           }
         }
       }
@@ -565,7 +580,7 @@
           "uiStateJSON": "{}",
           "description": "",
           "kibanaSavedObjectMeta": {
-            "searchSourceJSON": "{\"index\":\"7f9ccee0-8042-11e8-a4ec-6d15f48de4ec\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
+            "searchSourceJSON": "{\"index\":\"9dda19a0-8077-11e8-8dab-ab11f22dba1a\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
           }
         }
       }
