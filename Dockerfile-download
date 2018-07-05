@@ -3,8 +3,8 @@ FROM ubuntu:16.04
 #libx11-6 gconf2 fontconfig xserver-common chromium-chromedriver chromium-browser chromium-chromedriver xvfb xserver-xephyr
 RUN apt-get update \
     && apt-get install -y python python-pip  wget xvfb unzip \
-    && wget https://github.com/ozlevka-ericom/selenium-test/releases/download/Test/chrome64_67.0.3396.79.deb \
-    && wget https://github.com/ozlevka-ericom/selenium-test/releases/download/Test/chromedriver_linux64.zip \
+    && wget https://github.com/ozlevka-ericom/selenium-test/releases/download/0.2.0/chrome64_67.0.3396.79.deb \
+    && wget https://github.com/ozlevka-ericom/selenium-test/releases/download/0.2.0/chromedriver_linux64.zip \
     && apt-get install -y ./chrome64_67.0.3396.79.deb \
     && unzip chromedriver_linux64.zip -d /opt/google \
     && chmod +x /opt/google/chromedriver \

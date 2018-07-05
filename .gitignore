@@ -108,3 +108,4 @@ chromedriver
 
 # avoid download files
 download/
+compose.yml

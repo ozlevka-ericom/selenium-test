@@ -11,6 +11,7 @@ fi
 
 DOCKER_VERSION=18.03.1
 DOCKER_COMPOSE_VERSION=1.21.2
+export LC_ALL=C
 
 function install_docker() {
     if [ ! -x /usr/bin/docker ] || [ "$(docker version | grep -c $DOCKER_VERSION)" -le 1 ]; then
@@ -39,4 +40,26 @@ function install_docker_compose() {
     fi
 }
 
+
+function install_python_deps() {
+    if [ "$(pip3 freeze | grep -c PyYAML)" -le 1 ]; then
+        apt-get install -y python3-pip
+        pip3 install -r install-dep.txt
+    fi
+}
+
+
+install_docker
+install_docker_compose
+install_python_deps
+
+if [ ! -d /tmp/elastic ]; then
+    mkdir -p /tmp/elastic
+    chmod 777 /tmp/elastic
+fi
+
+sysctl -w vm.max_map_count=262144
+
+chmod +x start-soak-test.py
+./start-soak-test.py "${@}"
 
