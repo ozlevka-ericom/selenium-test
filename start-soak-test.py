@@ -5,8 +5,14 @@
 Create Soak Test Environment
 """
 
-import subprocess, os
+import subprocess, os, sys
+
+
+def main():
+    pass
 
 
 
+if __name__ == '__main__':
+    main(sys.argv)
 

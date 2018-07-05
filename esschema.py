@@ -15,6 +15,8 @@ class EsSchema():
     def make_index_template(self):
         if not self.indicesClient.exists_template('soaktest:template'):
             self.indicesClient.put_template("soaktest:template", self.schema['soaktest:template'])
+        if not self.indicesClient.exists_template('soakdownload:template'):
+            self.indicesClient.put_template("soakdownload:template", self.schema['soakdownload:template'])
 
     def make_kibana_index(self):
         if not self.indicesClient.exists_template("kibana_index_template:.kibana"):

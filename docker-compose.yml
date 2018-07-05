@@ -29,7 +29,7 @@ services:
       - elastic
 
   test:
-    image: ozlevka/python-test:180621-12.13
+    image: ozlevka/python-test:180705-11.46
     networks:
       - default
     links:
@@ -38,12 +38,30 @@ services:
       - elastic
 #    network_mode: host
     environment:
-      - "SYSTEM_UNDER_TEST_IP=192.168.50.74"
+      - "SYSTEM_UNDER_TEST_IP=192.168.50.104"
       - "TEST_CYCLES=500"
       - "ES_HOST=elastic:9200"
       - "ITERATION_PAUSE=10"
       - "CHROME_LOG_PATH=."
 #     - "MAXIMUM_TABS=10" in browser
+
+  test-download:
+    image: ozlevka/python-test-download:180705-11.46
+    networks:
+      - default
+    links:
+      - elastic
+    depends_on:
+      - elastic
+#    network_mode: host
+    environment:
+      - "SYSTEM_UNDER_TEST_IP=192.168.50.104"
+      - "TEST_CYCLES=5000"
+      - "ES_HOST=elastic:9200"
+      - "ITERATION_PAUSE=20"
+      - "CHROME_LOG_PATH=."
+#     - "MAXIMUM_TABS=10" in browser
+
 
 networks:
   default:

@@ -124,7 +124,7 @@ def make_result_body(iteration, attempt, url, data):
 def write_results_to_es(iteration, attempt, url, data, error):
     try:
         body = make_result_body(iteration, attempt, url, data)
-        print es_client.index('soaktest', 'test', body)
+        print es_client.index('soakdownload', 'test', body)
     except Exception, ex:
         print ex
 
