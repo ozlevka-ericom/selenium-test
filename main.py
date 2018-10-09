@@ -8,8 +8,11 @@ from selenium.webdriver.support import expected_conditions as EC
 import consul
 import os, sys
 from elasticsearch import Elasticsearch
+import elasticsearch.helpers as H
 import socket
 from gevent.threadpool import ThreadPool
+from selenium.common.exceptions import TimeoutException
+from esschema import EsSchema
 
 
 
@@ -77,36 +80,68 @@ while wait_for_elasticsearch:
         raise Exception("Elasticsearch is not avaliable after " + str(counter) + " retries")
     time.sleep(1)
 
-def make_result_body(i, line, error):
+schema = EsSchema(es_client)
+schema.make_schema()
+
+
+
+
+def make_result_body(iteration, attempt, url, data):
     browsers = fetch_free_browsers()
     print str(datetime.now()) + ' Free browsers: ' + str(len(browsers['free'])) + " Used browsers: " + str(
         len(browsers['used']))
     print str(datetime.now()) + ' ' + str(browsers)
 
+
+
     body = {
-        'url': line,
+        'url': url,
         '@timestamp': datetime.utcnow(),
         'browsers': {
             'free': len(browsers['free']),
             'used': len(browsers['used'])
         },
-        'iteration': (i + 1),
-        'hostname': hostname
+        'iteration': (iteration + 1),
+        'attempt': attempt,
+        'hostname': hostname,
+        'data_type': "main"
     }
 
-    if error is None:
+    if data['error'] is None:
         body['result'] = 'success'
     else:
         body['result'] = 'failed'
-        body['error'] = str(type(error))
 
     return body
 
 
-def write_results_to_es(i, line, error):
+def write_results_to_es(iteration, attempt, url, data, error):
     try:
-        body = make_result_body(i, line, error)
-        print es_client.index('soaktest', 'test', body)
+        body = make_result_body(iteration, attempt, url, data)
+        index = 'soaktest'
+        _type = 'test'
+        print es_client.index(index, _type, body)
+        bulk = []
+        for item in data['data']:
+            performance = {
+              'url': body['url'],
+              '@timestamp': body['@timestamp'],
+              'hostname': hostname,
+              'attempt': attempt,
+              'data_type': "performance",
+              "browsing": {
+                  "data": item
+              }
+            }
+            index_item = {
+                "_index": index,
+                '_type': _type,
+                "_op_type": "index",
+                '_source': performance
+            }
+
+            bulk.append(index_item)
+        print H.bulk(es_client, bulk)
     except Exception, ex:
         print ex
 
@@ -117,7 +152,7 @@ chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("--disable-setuid-sandbox")
 chrome_options.add_argument('--proxy-server=' + proxy_address)
-chrome_options.binary_location = '/opt/google/chrome-beta/google-chrome'
+chrome_options.binary_location = '/opt/google/chrome/google-chrome'
 
 
 def fetch_free_browsers():
@@ -153,51 +188,91 @@ def clear_half_tabs(driver):
         driver.switch_to.window(driver.window_handles[0])
         driver.close()
 
+def make_data_from_table(trs, error):
+    data = []
+    for tr in trs[1:]:
+        tds = tr.find_elements_by_tag_name('td')
+        data.append({
+            'name': tds[0].text,
+            'client_time': tds[1].text,
+            'server_time': tds[2].text
+        })
+    if not error is None:
+        return {
+            'error': error,
+            'data': data
+        }
+    return {
+        'error': None,
+        'data': data
+    }
+
 def run_main_line():
     main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', service_args=service_args, chrome_options=chrome_options, desired_capabilities=desired_capabilities)  # usr/lib/chromium-browser/chromedriver')
     try:
+        wait = WebDriverWait(main_driver, 20)
+
         for i in range(0, returns):
             for line in open(file_path, mode='rb'):
-                try:
-                    #main_driver.get(line)
-                    main_driver.execute_script("window.open('%s')" % line.replace("\r\n",''))
-                    error = None
-                    current_handle = main_driver.window_handles[-1]
-                    main_driver.switch_to.window(current_handle)
+                error = None
+                data = None
+                for j in range(1,4):
+                    try:
+                       main_driver.get("http://shield-perf")
+                       try:
+                           url = wait.until(
+                               EC.presence_of_element_located((By.ID, "target-url"))
+                           )
+                       except TimeoutException:
+                           raise TimeoutException("Main page load timeout attempt {}".format(i))
 
 
+                       url.clear()
+                       url.send_keys(line)
+                       try:
+                           iframe = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div#frame-wrapper iframe.an-frame")))
+                       except TimeoutException:
+                           raise TimeoutException("Shield iframe timeout attempt {}".format(i))
 
-                    canvas = WebDriverWait(main_driver, 10).until(
-                        EC.presence_of_element_located((By.ID, "canvas"))
-                    )
+                       main_driver.switch_to.frame(iframe)
+                       try:
+                           wait.until(EC.presence_of_element_located((By.ID, "canvas")))
+                       except TimeoutException:
+                            print "Access now timeout attempt {}".format(i)
+                       main_driver.switch_to.window(main_driver.window_handles[0])
 
-                    menu = WebDriverWait(main_driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "nav.context-menu"))
-                    )
+                       page_loaded = False
+                       #"page fully loaded"
 
-                    if not canvas:
-                        raise Exception('Canvas not found')
-                    elif not canvas.__class__.__name__ == 'WebElement':
-                        raise Exception('Canvas is not WebElement')
+                       last_error = None
+                       try:
+                           wait.until(
+                               EC.presence_of_element_located((By.ID,"page-loaded"))
+                           )
+                       except TimeoutException:
+                           last_error = "Page fully loaded timeout attempt {}".format(i)
 
-                    if not menu:
-                        raise Exception('menu not found')
-                    elif not menu.__class__.__name__ == 'WebElement':
-                        raise Exception('menu is not WebElement')
+                       time.sleep(iteration_pause)
 
-                except Exception, e:
-                    print e
-                    error = e
+                       trs = main_driver.find_elements_by_css_selector("#table-results tr")
 
-                try:
-                    if len(main_driver.window_handles) >= maximum_tabs:
-                        clear_half_tabs(main_driver)
-                        current_handle = main_driver.window_handles[-1]
-                        main_driver.switch_to.window(current_handle)
-                except Exception, e:
-                    print e
+                       data = make_data_from_table(trs, last_error)
 
-                pool.spawn(write_results_to_es, i, line, error)
+                    except Exception, e:
+                        print e
+                        error = e
+
+                    write_results_to_es( i, j, line, data, error)
+
+                # try:
+                #     if len(main_driver.window_handles) >= maximum_tabs:
+                #         clear_half_tabs(main_driver)
+                #         current_handle = main_driver.window_handles[-1]
+                #         main_driver.switch_to.window(current_handle)
+                # except Exception, e:
+                #     print e
+
+
 
                 time.sleep(iteration_pause)
     except Exception as exs:

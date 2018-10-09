@@ -101,3 +101,11 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+
+# avoid chromedriver
+chromedriver
+
+# avoid download files
+download/
+compose.yml

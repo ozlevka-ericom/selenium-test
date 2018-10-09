@@ -2,12 +2,12 @@ version: "3.3"
 
 services:
   elastic:
-    image: elasticsearch:5.5.1
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.0 
     environment:
         ES_JAVA_OPTS: "-Xms2g -Xmx2g"
     volumes:
         - /etc/localtime:/etc/localtime:ro
-        - /home/ozlevka/tmpwork/elastic:/data
+        - /tmp/elastic:/data
     networks:
       - default
     command: "elasticsearch --E cluster.name=soaktest --E path.data=/data"
@@ -15,7 +15,7 @@ services:
       - "9201:9200"
 
   kibana:
-    image: kibana:5.5.1
+    image: docker.elastic.co/kibana/kibana-oss:6.3.0 
     command: kibana -e http://elastic:9200
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -25,9 +25,11 @@ services:
       - default
     links:
       - elastic
+    depends_on:
+      - elastic
 
   test:
-    image: ozlevka/python-test:latest
+    image: ozlevka/python-test:181008-12.32
     networks:
       - default
     links:
@@ -36,12 +38,30 @@ services:
       - elastic
 #    network_mode: host
     environment:
-      - "SYSTEM_UNDER_TEST_IP=192.168.50.80"
+      - "SYSTEM_UNDER_TEST_IP=192.168.50.104"
       - "TEST_CYCLES=500"
       - "ES_HOST=elastic:9200"
       - "ITERATION_PAUSE=10"
       - "CHROME_LOG_PATH=."
 #     - "MAXIMUM_TABS=10" in browser
+
+  test-download:
+    image: ozlevka/python-test-download:181008-12.32
+    networks:
+      - default
+    links:
+      - elastic
+    depends_on:
+      - elastic
+#    network_mode: host
+    environment:
+      - "SYSTEM_UNDER_TEST_IP=192.168.50.104"
+      - "TEST_CYCLES=500"
+      - "ES_HOST=elastic:9200"
+      - "ITERATION_PAUSE=20"
+      - "CHROME_LOG_PATH=."
+#     - "MAXIMUM_TABS=10" in browser
+
 
 networks:
   default:
