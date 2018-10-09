@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import consul
 import os, sys
 from elasticsearch import Elasticsearch
+import elasticsearch.helpers as H
 import socket
 from gevent.threadpool import ThreadPool
 from selenium.common.exceptions import TimeoutException
@@ -91,6 +92,8 @@ def make_result_body(iteration, attempt, url, data):
         len(browsers['used']))
     print str(datetime.now()) + ' ' + str(browsers)
 
+
+
     body = {
         'url': url,
         '@timestamp': datetime.utcnow(),
@@ -101,7 +104,7 @@ def make_result_body(iteration, attempt, url, data):
         'iteration': (iteration + 1),
         'attempt': attempt,
         'hostname': hostname,
-        'browsing': data
+        'data_type': "main"
     }
 
     if data['error'] is None:
@@ -115,7 +118,30 @@ def make_result_body(iteration, attempt, url, data):
 def write_results_to_es(iteration, attempt, url, data, error):
     try:
         body = make_result_body(iteration, attempt, url, data)
-        print es_client.index('soaktest', 'test', body)
+        index = 'soaktest'
+        _type = 'test'
+        print es_client.index(index, _type, body)
+        bulk = []
+        for item in data['data']:
+            performance = {
+              'url': body['url'],
+              '@timestamp': body['@timestamp'],
+              'hostname': hostname,
+              'attempt': attempt,
+              'data_type': "performance",
+              "browsing": {
+                  "data": item
+              }
+            }
+            index_item = {
+                "_index": index,
+                '_type': _type,
+                "_op_type": "index",
+                '_source': performance
+            }
+
+            bulk.append(index_item)
+        print H.bulk(es_client, bulk)
     except Exception, ex:
         print ex
 
@@ -201,6 +227,7 @@ def run_main_line():
                            raise TimeoutException("Main page load timeout attempt {}".format(i))
 
 
+                       url.clear()
                        url.send_keys(line)
                        try:
                            iframe = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div#frame-wrapper iframe.an-frame")))

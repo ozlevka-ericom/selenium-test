@@ -212,6 +212,7 @@ def run_main_line():
                        except TimeoutException:
                            raise TimeoutException("Main page load timeout attempt {}".format(i))
 
+                       url_input.clear()
                        url_input.send_keys(url + "\n")
 
                        try:
