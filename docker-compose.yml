@@ -29,7 +29,7 @@ services:
       - elastic
 
   test:
-    image: ozlevka/python-test:181008-12.32
+    image: ozlevka/python-test:181009-14.25
     networks:
       - default
     links:
@@ -46,7 +46,7 @@ services:
 #     - "MAXIMUM_TABS=10" in browser
 
   test-download:
-    image: ozlevka/python-test-download:181008-12.32
+    image: ozlevka/python-test-download:181009-14.25
     networks:
       - default
     links:
