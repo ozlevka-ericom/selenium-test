@@ -145,7 +145,14 @@ def write_results_to_es(iteration, attempt, url, data, error):
     except Exception, ex:
         print ex
 
-cnl = consul.Consul(host=system_ip)
+consul_host = system_ip
+consul_port = 8500
+if 'CONSUL_HOST' in os.environ:
+    consul_host = os.environ['CONSUL_HOST']
+if 'CONSUL_PORT' in os.environ:
+    consul_port = int(os.environ['CONSUL_PORT'])
+
+cnl = consul.Consul(host=consul_host, port=consul_port)
 
 proxy_address = 'http://' + system_ip + ':3128'
 chrome_options = webdriver.ChromeOptions()
@@ -156,17 +163,16 @@ chrome_options.binary_location = '/opt/google/chrome/google-chrome'
 
 
 def fetch_free_browsers():
-    ss = cnl.agent.services()
+    ss = cnl.catalog.service("shield-browser")
     browsers = {
         'free': [],
         'used': []
     }
-    for s in ss:
-        if ss[s]['Service'] == 'shield-browser':
-           if 'free' in ss[s]['Tags']:
-               browsers['free'].append(s)
-           elif 'used' in  ss[s]['Tags']:
-               browsers['used'].append(s)
+    for s in ss[1]:
+       if 'free' in s['ServiceTags']:
+           browsers['free'].append(s)
+       elif 'used' in  s['ServiceTags']:
+           browsers['used'].append(s)
     return browsers
 
 
