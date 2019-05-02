@@ -6,8 +6,7 @@
       "number_of_replicas": 0
     },
     "mappings": {
-      "test": {
-        "properties": {
+      "properties": {
           "url": {
             "type": "keyword",
             "ignore_above": 1024
@@ -69,7 +68,6 @@
             }
           }
         }
-      }
     }
   },
   "soakdownload:template": {
@@ -79,8 +77,7 @@
       "number_of_replicas": 0
     },
     "mappings": {
-      "test": {
-        "properties": {
+      "properties": {
           "url": {
             "type": "keyword",
             "ignore_above": 1024
@@ -138,7 +135,6 @@
             }
           }
         }
-      }
     }
   },
   "kibana_index_template:.kibana": {
@@ -152,9 +148,7 @@
       }
     },
     "mappings": {
-      "doc": {
-        "dynamic": "strict",
-        "properties": {
+      "properties": {
           "type": {
             "type": "keyword"
           },
@@ -380,7 +374,6 @@
             }
           }
         }
-      }
     }
   },
   "kibana:data": [

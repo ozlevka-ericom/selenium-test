@@ -62,6 +62,10 @@ maximum_tabs = 5
 if 'MAXIMUM_TABS' in os.environ:
     maximum_tabs = int(os.environ['MAXIMUM_TABS'])
 
+wait_time_out = 20
+if 'WAIT_TIME_OUT' in os.environ:
+    wait_time_out = int(os.environ['WAIT_TIME_OUT'])
+
 es_client = Elasticsearch(hosts=[es_host])
 
 wait_for_elasticsearch = True
@@ -82,8 +86,6 @@ while wait_for_elasticsearch:
 
 schema = EsSchema(es_client)
 schema.make_schema()
-
-
 
 
 def make_result_body(iteration, attempt, url, data):
@@ -111,6 +113,7 @@ def make_result_body(iteration, attempt, url, data):
         body['result'] = 'success'
     else:
         body['result'] = 'failed'
+        body['error'] = data['error']
 
     return body
 
@@ -119,8 +122,7 @@ def write_results_to_es(iteration, attempt, url, data, error):
     try:
         body = make_result_body(iteration, attempt, url, data)
         index = 'soaktest'
-        _type = 'test'
-        print es_client.index(index, _type, body)
+        print es_client.index(index, body)
         bulk = []
         for item in data['data']:
             performance = {
@@ -135,7 +137,6 @@ def write_results_to_es(iteration, attempt, url, data, error):
             }
             index_item = {
                 "_index": index,
-                '_type': _type,
                 "_op_type": "index",
                 '_source': performance
             }
@@ -216,7 +217,7 @@ def make_data_from_table(trs, error):
 def run_main_line():
     main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', service_args=service_args, chrome_options=chrome_options, desired_capabilities=desired_capabilities)  # usr/lib/chromium-browser/chromedriver')
     try:
-        wait = WebDriverWait(main_driver, 20)
+        wait = WebDriverWait(main_driver, wait_time_out)
 
         for i in range(0, returns):
             for line in open(file_path, mode='rb'):

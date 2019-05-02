@@ -33,5 +33,5 @@ class EsSchema():
 
     def make_schema(self):
         self.make_index_template()
-        self.make_kibana_index()
-        self.make_kibana_visualization()
+        #self.make_kibana_index()
+        #self.make_kibana_visualization()
