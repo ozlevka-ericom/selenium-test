@@ -13,6 +13,7 @@ import socket
 from gevent.threadpool import ThreadPool
 from selenium.common.exceptions import TimeoutException
 from esschema import EsSchema
+from kibana.client import Kibana
 
 
 
@@ -41,6 +42,11 @@ es_host = 'localhost:9200'
 
 if 'ES_HOST' in os.environ:
     es_host = os.environ['ES_HOST']
+
+kibana_host = "http://localhost:5601"
+
+if "KIBANA_HOST" in os.environ:
+    kibana_host = os.environ["KIBANA_HOST"]
 
 
 file_path = 'test-url-list.txt'
@@ -86,6 +92,9 @@ while wait_for_elasticsearch:
 
 schema = EsSchema(es_client)
 schema.make_schema()
+
+kibana = Kibana(kibana_host)
+kibana.import_dashboard("data/dashboard.json")
 
 
 def make_result_body(iteration, attempt, url, data):

@@ -38,12 +38,12 @@ class Kibana:
 def test_export():
     kibana = Kibana("http://192.168.50.106:5601")
     data = kibana.export_dashboard("84d2a8c0-6ca6-11e9-81cc-d35b7008c50a")
-    with open("../download/data.json", mode="w") as f:
+    with open("../download/dashboard.json", mode="w") as f:
         json.dump(data, f)
 
 def test():
     kibana = Kibana("http://192.168.50.106:5601")
-    kibana.import_dashboard("../download/data.json")
+    kibana.import_dashboard("../download/dashboard.json")
 
 
 

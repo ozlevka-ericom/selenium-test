@@ -1,4 +1,4 @@
 #!/bin/bash 
 
-tar cvfz download/test.tar.gz install-dep.txt run_test.sh docker-compose.yml start-soak-test.py kibana
+tar cvfz download/test.tar.gz install-dep.txt run_test.sh compose.yml start-soak-test.py kibana
 

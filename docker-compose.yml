@@ -2,20 +2,28 @@ version: "3.3"
 
 services:
   elastic:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.0 
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.0.0
     environment:
-        ES_JAVA_OPTS: "-Xms2g -Xmx2g"
+       - node.name=elastic
+       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+       - discovery.seed_hosts=elastic
+       - cluster.name=elasticsearch
+       - cluster.initial_master_nodes=elastic
+       - bootstrap.memory_lock=true
     volumes:
         - /etc/localtime:/etc/localtime:ro
         - /tmp/elastic:/data
     networks:
       - default
-    command: "elasticsearch --E cluster.name=soaktest --E path.data=/data"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     ports:
       - "9201:9200"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:6.3.0 
+    image: docker.elastic.co/kibana/kibana-oss:7.0.0
     command: kibana -e http://elastic:9200
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -29,13 +37,15 @@ services:
       - elastic
 
   test:
-    image: ozlevka/python-test:181009-14.25
+    image: ozlevka/python-test:190502-16.30
     networks:
       - default
     links:
       - elastic
+      - kibana
     depends_on:
       - elastic
+      - kibana
 #    network_mode: host
     environment:
       - "SYSTEM_UNDER_TEST_IP=192.168.50.104"
@@ -43,6 +53,7 @@ services:
       - "ES_HOST=elastic:9200"
       - "ITERATION_PAUSE=10"
       - "CHROME_LOG_PATH=."
+      - "KIBANA_HOST=http://kibana:5601"
 #     - "MAXIMUM_TABS=10" in browser
 
   test-download:
