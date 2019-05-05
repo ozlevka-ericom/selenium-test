@@ -1,0 +1,73 @@
+version: "3.3"
+
+services:
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.0.0
+    environment:
+       - node.name=elastic
+       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+       - discovery.seed_hosts=elastic
+       - cluster.name=elasticsearch
+       - cluster.initial_master_nodes=elastic
+       - bootstrap.memory_lock=true
+    volumes:
+        - /etc/localtime:/etc/localtime:ro
+        - /tmp/elastic:/data
+    networks:
+      - default
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9201:9200"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.0.0
+    command: kibana -e http://elastic:9200
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "5603:5601"
+    networks:
+      - default
+    links:
+      - elastic
+    depends_on:
+      - elastic
+
+  test:
+    image: ozlevka/python-test:190502-16.30
+    networks:
+      - default
+    links:
+      - elastic
+      - kibana
+    depends_on:
+      - elastic
+      - kibana
+#    network_mode: host
+    environment:
+      - "ES_HOST=elastic:9200"
+      - "CHROME_LOG_PATH=."
+      - "KIBANA_HOST=http://kibana:5601"
+#     - "MAXIMUM_TABS=10" in browser
+
+  test-download:
+    image: ozlevka/python-test-download:181009-14.25
+    networks:
+      - default
+    links:
+      - elastic
+    depends_on:
+      - elastic
+#    network_mode: host
+    environment:
+      - "ES_HOST=elastic:9200"
+      - "CHROME_LOG_PATH=."
+#     - "MAXIMUM_TABS=10" in browser
+
+
+networks:
+  default:
+
