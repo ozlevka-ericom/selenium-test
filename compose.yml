@@ -37,7 +37,7 @@ services:
       - elastic
 
   test:
-    image: ozlevka/python-test:190502-16.30
+    image: ozlevka/python-test:190507-11.11
     networks:
       - default
     links:
@@ -54,7 +54,7 @@ services:
 #     - "MAXIMUM_TABS=10" in browser
 
   test-download:
-    image: ozlevka/python-test-download:181009-14.25
+    image: ozlevka/python-test-download:190507-11.11
     networks:
       - default
     links:
@@ -65,6 +65,7 @@ services:
     environment:
       - "ES_HOST=elastic:9200"
       - "CHROME_LOG_PATH=."
+      - "KIBANA_HOST=http://kibana:5601"
 #     - "MAXIMUM_TABS=10" in browser
 
 

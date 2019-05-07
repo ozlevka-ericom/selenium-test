@@ -71,6 +71,7 @@ services:
       - "ES_HOST=elastic:9200"
       - "ITERATION_PAUSE=20"
       - "CHROME_LOG_PATH=."
+      - "KIBANA_HOST=http://kibana:5601"
 #     - "MAXIMUM_TABS=10" in browser
 
 
