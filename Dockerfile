@@ -13,7 +13,8 @@ COPY dependencies.txt ./
 RUN pip install --upgrade pip==9.0.3 && pip install -r ./dependencies.txt
 
 WORKDIR /opt/application
-COPY   *.py test-url-list.txt ./
+COPY  *.py test-url-list.txt ./
+COPY  kibana/ ./kibana/
 COPY data/ ./data/
 
 

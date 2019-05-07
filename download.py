@@ -13,7 +13,7 @@ from gevent.threadpool import ThreadPool
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, UnexpectedAlertPresentException
 from esschema import EsSchema
 import glob
-
+from kibana.client import Kibana
 
 
 show_browser_ui = False
@@ -43,6 +43,11 @@ es_host = 'localhost:9200'
 
 if 'ES_HOST' in os.environ:
     es_host = os.environ['ES_HOST']
+
+kibana_host = "http://localhost:5601"
+
+if "KIBANA_HOST" in os.environ:
+    kibana_host = os.environ["KIBANA_HOST"]
 
 
 file_path = 'links/index.html'
@@ -90,7 +95,8 @@ while wait_for_elasticsearch:
 schema = EsSchema(es_client)
 schema.make_schema()
 
-
+kibana = Kibana(kibana_host)
+kibana.import_dashboard("data/download-dashboard.json")
 
 
 def make_result_body(iteration, attempt, url, data):
@@ -124,7 +130,7 @@ def make_result_body(iteration, attempt, url, data):
 def write_results_to_es(iteration, attempt, url, data, error):
     try:
         body = make_result_body(iteration, attempt, url, data)
-        print es_client.index('soakdownload', 'test', body)
+        print es_client.index('soakdownload', body)
     except Exception, ex:
         print ex
 

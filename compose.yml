@@ -37,7 +37,7 @@ services:
       - elastic
 
   test:
-    image: ozlevka/python-test:190502-16.30
+    image: ozlevka/python-test:190507-11.11
     networks:
       - default
     links:
@@ -48,16 +48,13 @@ services:
       - kibana
 #    network_mode: host
     environment:
-      - "SYSTEM_UNDER_TEST_IP=192.168.50.104"
-      - "TEST_CYCLES=500"
       - "ES_HOST=elastic:9200"
-      - "ITERATION_PAUSE=10"
       - "CHROME_LOG_PATH=."
       - "KIBANA_HOST=http://kibana:5601"
 #     - "MAXIMUM_TABS=10" in browser
 
   test-download:
-    image: ozlevka/python-test-download:181009-14.25
+    image: ozlevka/python-test-download:190507-11.11
     networks:
       - default
     links:
@@ -66,10 +63,7 @@ services:
       - elastic
 #    network_mode: host
     environment:
-      - "SYSTEM_UNDER_TEST_IP=192.168.50.104"
-      - "TEST_CYCLES=500"
       - "ES_HOST=elastic:9200"
-      - "ITERATION_PAUSE=20"
       - "CHROME_LOG_PATH=."
       - "KIBANA_HOST=http://kibana:5601"
 #     - "MAXIMUM_TABS=10" in browser

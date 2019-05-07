@@ -13,6 +13,7 @@ import socket
 from gevent.threadpool import ThreadPool
 from selenium.common.exceptions import TimeoutException
 from esschema import EsSchema
+from kibana.client import Kibana
 
 
 
@@ -42,6 +43,11 @@ es_host = 'localhost:9200'
 if 'ES_HOST' in os.environ:
     es_host = os.environ['ES_HOST']
 
+kibana_host = "http://localhost:5601"
+
+if "KIBANA_HOST" in os.environ:
+    kibana_host = os.environ["KIBANA_HOST"]
+
 
 file_path = 'test-url-list.txt'
 
@@ -61,6 +67,10 @@ if 'CHROME_LOG_PATH' in os.environ:
 maximum_tabs = 5
 if 'MAXIMUM_TABS' in os.environ:
     maximum_tabs = int(os.environ['MAXIMUM_TABS'])
+
+wait_time_out = 20
+if 'WAIT_TIME_OUT' in os.environ:
+    wait_time_out = int(os.environ['WAIT_TIME_OUT'])
 
 es_client = Elasticsearch(hosts=[es_host])
 
@@ -83,7 +93,8 @@ while wait_for_elasticsearch:
 schema = EsSchema(es_client)
 schema.make_schema()
 
-
+kibana = Kibana(kibana_host)
+kibana.import_dashboard("data/dashboard.json")
 
 
 def make_result_body(iteration, attempt, url, data):
@@ -111,6 +122,7 @@ def make_result_body(iteration, attempt, url, data):
         body['result'] = 'success'
     else:
         body['result'] = 'failed'
+        body['error'] = data['error']
 
     return body
 
@@ -119,8 +131,7 @@ def write_results_to_es(iteration, attempt, url, data, error):
     try:
         body = make_result_body(iteration, attempt, url, data)
         index = 'soaktest'
-        _type = 'test'
-        print es_client.index(index, _type, body)
+        print es_client.index(index, body)
         bulk = []
         for item in data['data']:
             performance = {
@@ -135,7 +146,6 @@ def write_results_to_es(iteration, attempt, url, data, error):
             }
             index_item = {
                 "_index": index,
-                '_type': _type,
                 "_op_type": "index",
                 '_source': performance
             }
@@ -145,7 +155,14 @@ def write_results_to_es(iteration, attempt, url, data, error):
     except Exception, ex:
         print ex
 
-cnl = consul.Consul(host=system_ip)
+consul_host = system_ip
+consul_port = 8500
+if 'CONSUL_HOST' in os.environ:
+    consul_host = os.environ['CONSUL_HOST']
+if 'CONSUL_PORT' in os.environ:
+    consul_port = int(os.environ['CONSUL_PORT'])
+
+cnl = consul.Consul(host=consul_host, port=consul_port)
 
 proxy_address = 'http://' + system_ip + ':3128'
 chrome_options = webdriver.ChromeOptions()
@@ -156,17 +173,16 @@ chrome_options.binary_location = '/opt/google/chrome/google-chrome'
 
 
 def fetch_free_browsers():
-    ss = cnl.agent.services()
+    ss = cnl.catalog.service("shield-browser")
     browsers = {
         'free': [],
         'used': []
     }
-    for s in ss:
-        if ss[s]['Service'] == 'shield-browser':
-           if 'free' in ss[s]['Tags']:
-               browsers['free'].append(s)
-           elif 'used' in  ss[s]['Tags']:
-               browsers['used'].append(s)
+    for s in ss[1]:
+       if 'free' in s['ServiceTags']:
+           browsers['free'].append(s)
+       elif 'used' in  s['ServiceTags']:
+           browsers['used'].append(s)
     return browsers
 
 
@@ -210,7 +226,7 @@ def make_data_from_table(trs, error):
 def run_main_line():
     main_driver = webdriver.Chrome(executable_path='/opt/google/chromedriver', service_args=service_args, chrome_options=chrome_options, desired_capabilities=desired_capabilities)  # usr/lib/chromium-browser/chromedriver')
     try:
-        wait = WebDriverWait(main_driver, 20)
+        wait = WebDriverWait(main_driver, wait_time_out)
 
         for i in range(0, returns):
             for line in open(file_path, mode='rb'):
