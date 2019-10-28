@@ -19,7 +19,7 @@ spec:
          - -c
          - |
           cd /app
-          /usr/local/bin/python ./white-test.py
+          /usr/local/bin/python -u ./white-test.py
         env:
           - name: ES_HOST
             value: "elasticsearch-master-master.elk.svc:9200"
