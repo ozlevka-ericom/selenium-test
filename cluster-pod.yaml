@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: white-test
+  labels:
+    app: white-test
+spec:
+  containers:
+  - name: the-test
+    image: ozlevka/white-test:v2
+    command:
+     - "/bin/sh"
+     - -c
+     - |
+      while sleep 1000; do :; done
+    env:
+    - name: ES_HOST
+      value: "elasticsearch-master-master.elk.svc:9200"
+    - name: PROXY_ADDRESS
+      value: "es-proxy-auth.proxy.svc"
+    - name: CONSUL_HOST
+      valueFrom:
+        fieldRef:
+          fieldPath: status.hostIP
+    - name: CONSUL_PORT
+      value: "8501"

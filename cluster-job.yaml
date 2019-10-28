@@ -13,16 +13,24 @@ spec:
     spec:
       containers:
       - name: the-test
-        image: ozlevka/white-test:v1
+        image: ozlevka/white-test:v3
         command:
          - "/bin/sh"
          - -c
          - |
           cd /app
+          /usr/local/bin/python -u ./prepare-policies.py 1
           /usr/local/bin/python -u ./white-test.py
+          /usr/local/bin/python -u ./prepare-policies.py -1
         env:
           - name: ES_HOST
             value: "elasticsearch-master-master.elk.svc:9200"
           - name: PROXY_ADDRESS
             value: "es-proxy-auth.proxy.svc"
+          - name: CONSUL_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: CONSUL_PORT
+            value: "8501"
       restartPolicy: Never
