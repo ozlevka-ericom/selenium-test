@@ -1,0 +1,13 @@
+version: "3.3"
+
+services:
+  development:
+    build:
+      dockerfile: ./Dockerfile-dev
+      context: ./
+    volumes: 
+      - "/home/ozlevka/projects/selenium-test:/home/vscode/app"
+    environment: 
+      - "ES_HOST=192.168.50.80:9200"
+      - "PROXY_ADDRESS=192.168.50.2"
+    command: /bin/sh -c "while sleep 1000; do :; done"

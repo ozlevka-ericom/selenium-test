@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: white-test
+  labels:
+    test: white-test
+spec:
+  template:
+    metadata:
+      name: white-test
+      labels:
+        test: white-test
+    spec:
+      containers:
+      - name: the-test
+        image: ozlevka/white-test:v1
+        command:
+         - "/bin/sh"
+         - -c
+         - |
+          cd /app
+          /usr/local/bin/python ./white-test.py
+        env:
+          - name: ES_HOST
+            value: "elasticsearch-master-master.elk.svc:9200"
+          - name: PROXY_ADDRESS
+            value: "es-proxy-auth.proxy.svc"
+      restartPolicy: Never
